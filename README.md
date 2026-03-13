@@ -143,38 +143,6 @@ make test
 - **Unit tests**: Chunking, text cleaning, ignore rules, PII redaction, input validation
 - **Integration test**: `/query` endpoint — verifies SSE streaming, citation format, abstention
 
-## Caching
-
-| Cache | Type | Description |
-|-------|------|-------------|
-| Embedding cache | In-memory dict | Caches embedding vectors by text prefix to avoid re-embedding identical chunks |
-| Q/A semantic cache | In-memory dict | Caches (question → answer + citations) for repeated questions (max 256 entries) |
-
-## Scaling Strategy
-
-For moving to high QPS:
-
-1. **Horizontal pods**: Increase `replicaCount` in Helm values; stateless backend scales naturally behind a load balancer.
-2. **GPU acceleration**: Use GPU-enabled Ollama for faster inference; serves both embeddings and generation.
-3. **Redis caches**: Replace in-memory caches with Redis for shared state across replicas.
-4. **Dedicated Ollama service**: Run Ollama as a separate scalable deployment with connection pooling.
-5. **Index sharding**: For >1M chunks, shard FAISS across replicas or switch to a distributed store (Qdrant, Weaviate).
-6. **Async batching**: Batch concurrent embedding requests to Ollama for better GPU utilization.
-
-## Helm Chart
-
-```bash
-# Dry run
-helm template ask-docs ./deploy/helm/ask-docs
-
-# Install
-helm install ask-docs ./deploy/helm/ask-docs \
-  --set image.repository=my-registry/ask-docs-backend \
-  --set image.tag=latest
-```
-
-The chart includes readiness/liveness probes, resource requests/limits, volume mounts for models and docs, and configurable environment variables / secrets.
-
 ## License
 
 MIT
