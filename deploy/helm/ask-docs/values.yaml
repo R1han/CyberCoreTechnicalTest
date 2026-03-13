@@ -1,0 +1,97 @@
+# Ask-Docs Helm Values
+# ---------------------------------------------------------------------------
+
+replicaCount: 1
+
+image:
+  repository: ask-docs-backend
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+# ── Resource requests/limits ────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: "500m"
+    memory: "4Gi"
+  limits:
+    cpu: "2"
+    memory: "8Gi"
+
+# ── Probes ──────────────────────────────────────────────────────────────────
+probes:
+  liveness:
+    path: /healthz
+    port: 8000
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    path: /readyz
+    port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+
+# ── Environment variables ───────────────────────────────────────────────────
+env:
+  LLM_MODEL_PATH: /models/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+  LLM_N_CTX: "4096"
+  LLM_N_GPU_LAYERS: "0"
+  OLLAMA_BASE_URL: http://ollama-service:11434
+  EMBEDDING_MODEL: nomic-embed-text
+  CHUNK_SIZE: "512"
+  TOP_K: "5"
+  RATE_LIMIT_PER_MINUTE: "30"
+  LOG_LEVEL: info
+
+# ── Secrets (reference a K8s Secret) ────────────────────────────────────────
+secrets:
+  # Name of an existing Secret containing sensitive config
+  existingSecret: ""
+  # Keys to mount as env vars from the secret
+  keys: []
+  # Example:
+  # existingSecret: ask-docs-secrets
+  # keys:
+  #   - LLM_API_KEY
+
+# ── Volumes (model files) ──────────────────────────────────────────────────
+volumes:
+  models:
+    enabled: true
+    # PVC name for model storage
+    existingClaim: ""
+    # Or create a new PVC
+    size: 10Gi
+    storageClass: ""
+    mountPath: /models
+
+  docs:
+    enabled: true
+    existingClaim: ""
+    size: 1Gi
+    storageClass: ""
+    mountPath: /app/docs
+
+# ── Ingress ─────────────────────────────────────────────────────────────────
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: ask-docs.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# ── Node selector / tolerations ─────────────────────────────────────────────
+nodeSelector: {}
+tolerations: []
+affinity: {}
