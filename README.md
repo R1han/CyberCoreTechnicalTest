@@ -146,3 +146,7 @@ make test
 ## License
 
 MIT
+
+## Demo Screenshot
+
+![Demo Question using chat widget](https://github.com/R1han/CyberCoreTechnicalTest/blob/main/DemoSS.png)
